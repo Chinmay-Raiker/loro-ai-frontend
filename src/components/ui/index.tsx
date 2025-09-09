@@ -38,3 +38,13 @@ export {
 export { Textarea } from "./textarea";
 
 export { Progress } from "./progress";
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table";

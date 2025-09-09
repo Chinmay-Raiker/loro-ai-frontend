@@ -27,7 +27,7 @@ import {
 } from "@/lib/schemas/agent";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldPath } from "react-hook-form";
 
 // ================== DEFAULT VALUES ==================
 const DEFAULT_VALUES: Partial<AgentCreateRequest> = {
@@ -70,7 +70,7 @@ export default function AgentCreateForm({
   });
 
   // Field paths per step (used by form.trigger for step-scoped validation)
-  const STEP_FIELDS: (keyof never | string)[][] = [
+  const STEP_FIELDS: FieldPath<AgentCreateRequest>[][] = [
     [
       "name",
       "conversation_config.agent_prompt",
@@ -85,7 +85,7 @@ export default function AgentCreateForm({
   ];
 
   const handleNext = async () => {
-    const valid = await form.trigger(STEP_FIELDS[step] as any, {
+    const valid = await form.trigger(STEP_FIELDS[step], {
       shouldFocus: true,
     });
     if (valid) setStep((s) => Math.min(s + 1, steps.length - 1));
@@ -96,7 +96,7 @@ export default function AgentCreateForm({
   const handleFinish = async () => {
     // Ensure final step fields are valid, then full form (in case of cross-field rules)
 
-    const stepValid = await form.trigger(STEP_FIELDS[step] as any, {
+    const stepValid = await form.trigger(STEP_FIELDS[step], {
       shouldFocus: true,
     });
     if (!stepValid) return;
@@ -251,9 +251,9 @@ export default function AgentCreateForm({
                             {...field}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value !== ""
-                                  ? parseFloat(e.target.value)
-                                  : ("" as any)
+                                e.target.value === ""
+                                  ? undefined
+                                  : parseFloat(e.target.value)
                               )
                             }
                           />
@@ -278,9 +278,9 @@ export default function AgentCreateForm({
                             {...field}
                             onChange={(e) =>
                               field.onChange(
-                                e.target.value !== ""
-                                  ? parseInt(e.target.value)
-                                  : ("" as any)
+                                e.target.value === ""
+                                  ? undefined
+                                  : parseInt(e.target.value, 10)
                               )
                             }
                           />
