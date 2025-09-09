@@ -1,20 +1,13 @@
 import { genericAPI } from "@/api/api";
-
-interface CreateAgentData {
-  name: string;
-  description?: string;
-  // Add other relevant fields as needed
-}
-const baseURL = "/api/agents";
+import type { CreateAgentRequest } from "@/types/agent";
+const baseUrl = "http://localhost:8000/api";
 
 export const agentHandlers = {
-  createAgent: async (agentData: CreateAgentData) => {
+  createAgent: async (agentData: CreateAgentRequest) => {
+    console.log(">>>request Data:", agentData);
     try {
-      console.log("Creating agent:", {
-        name: agentData.name,
-        description: agentData.description,
-      });
-      const response = await genericAPI.post(baseURL, agentData);
+      console.log("Creating agent:");
+      const response = await genericAPI.post(`${baseUrl}/agents`, agentData);
       console.log("Agent created successfully:", response.data);
       return response.data;
     } catch (error) {
@@ -30,7 +23,7 @@ export const agentHandlers = {
         }`
       );
       const agentData = { page, limit };
-      const response = await genericAPI.get(baseURL, agentData);
+      const response = await genericAPI.get(`${baseUrl}/agents`, agentData);
       console.log("Already created agents:", response.data);
       return response.data;
     } catch (error) {

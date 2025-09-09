@@ -1,5 +1,5 @@
 import axios, { type AxiosError } from "axios";
-// import { toast } from "sonner"
+import { toast } from "sonner";
 // import { handleAxiosError } from "~/lib/utils"
 // import { useLocalStore } from "~/store/data"
 
@@ -104,6 +104,7 @@ api.interceptors.response.use(
   (response) => {
     // Log successful responses
     console.log(`Response from ${response.config.url}:`, response.status);
+    toast.success("Call successful");
     return response;
   },
   async (error: AxiosError) => {
@@ -136,6 +137,7 @@ api.interceptors.response.use(
       message: error.response?.data || error.message,
       url: error.config?.url,
     });
+    toast.error("API Error");
 
     return Promise.reject(error);
   }

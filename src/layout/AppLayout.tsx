@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 export default function AppLayout() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <div className="flex">
+      <div className="flex h-full">
         <Sidebar />
         <div className="flex-1 min-w-0">
           <TopBar />
