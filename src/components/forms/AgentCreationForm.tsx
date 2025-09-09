@@ -25,8 +25,9 @@ import {
   AgentCreateRequestSchema,
   type AgentCreateRequest,
 } from "@/lib/schemas/agent";
+import useAgentStore from "@/store/agent_store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm, type FieldPath } from "react-hook-form";
 
 // ================== DEFAULT VALUES ==================
@@ -62,6 +63,33 @@ export default function AgentCreateForm({
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const steps = ["Basics", "Model", "Voices"] as const;
+
+  // Voices: load from store with caching
+  const { voices, voicesLoading, voicesError, loadVoices } = useAgentStore();
+
+  console.log('🎤 Component state:', { 
+    voicesCount: voices.length, 
+    voicesLoading, 
+    voicesError,
+    open 
+  });
+
+  // Memoize the voice loading logic to prevent unnecessary calls
+  const ensureVoicesLoaded = useCallback(async () => {
+    console.log('🔄 ensureVoicesLoaded:', { voicesLength: voices.length, voicesLoading });
+    if (voices.length === 0 && !voicesLoading) {
+      console.log('📋 Calling loadVoices...');
+      await loadVoices();
+    }
+  }, [voices.length, voicesLoading, loadVoices]);
+
+  useEffect(() => {
+    console.log('🎆 useEffect triggered:', { open });
+    if (open) {
+      // Only load voices if we don't have them and aren't already loading
+      void ensureVoicesLoaded();
+    }
+  }, [open, ensureVoicesLoaded]);
 
   const form = useForm<AgentCreateRequest>({
     resolver: zodResolver(AgentCreateRequestSchema),
@@ -124,6 +152,8 @@ export default function AgentCreateForm({
     setStep(0);
     form.reset(DEFAULT_VALUES as AgentCreateRequest);
   };
+
+  console.log(voices);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -298,18 +328,51 @@ export default function AgentCreateForm({
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Voice Configuration</h3>
 
+                {voicesLoading && (
+                  <p className="text-sm text-muted-foreground">
+                    Loading voices…
+                  </p>
+                )}
+                {voicesError && (
+                  <p className="text-sm text-red-500">{voicesError}</p>
+                )}
+
                 <FormField
                   control={form.control}
                   name="conversation_config.tts.voice_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Voice ID *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="your_elevenlabs_voice_id"
-                          {...field}
-                        />
-                      </FormControl>
+                      <FormLabel>Voice *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={voices.length ? field.value : undefined} // guard when no items
+                        disabled={voicesLoading || voices.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                voicesLoading
+                                  ? "Loading voices…"
+                                  : "Select a voice"
+                              }
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {voices.length > 0
+                            ? voices.map((v) => (
+                                <SelectItem key={v.voice_id} value={v.voice_id}>
+                                  {v.name}
+                                </SelectItem>
+                              ))
+                            : !voicesLoading && (
+                                <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                                  No voices available
+                                </div>
+                              )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -12,7 +12,6 @@ export default function AgentsPage() {
 
   const handleCreateAgent = async (data: AgentCreateRequest) => {
     try {
-      console.log("Creating agent with data:", data);
       await createAgent(data);
       await fetchAgents(); // Refresh the list
     } catch (error) {
@@ -25,7 +24,6 @@ export default function AgentsPage() {
     try {
       const agentsData = await listAgents();
       setAgentsList(agentsData);
-      console.log("Fetched agents:", agentsData);
     } catch (err) {
       console.error("Failed to fetch agents", err);
     }
